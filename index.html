@@ -3,7 +3,7 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>Kocaeli Toplanma Alanları 7.10.13</title>
+  <title>Kocaeli Toplanma Alanları 7.10.14</title>
   
 
 </head>
@@ -229,6 +229,31 @@
       width: 40px;
       height: 40px;
     }
+
+    /* Yeni eklenen buton için */
+    #toggle-control-panel {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      border: 1px solid #0077b6;
+      color: #0077b6;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      user-select: none;
+      z-index: 1200;
+      transition: background-color 0.3s ease;
+    }
+    #toggle-control-panel:hover {
+      background-color: #d0eaff;
+    }
   </style>
 </head>
 <body>
@@ -258,7 +283,10 @@
 
   <button id="toggle-reopen" title="Paneli aç">☰</button>
 
-  <div class="control-panel">
+  <!-- Yeni buton sol alt köşede -->
+  <button id="toggle-control-panel" title="Kontrol Panelini Aç/Kapa">˄</button>
+
+  <div class="control-panel" id="control-panel">
     <button id="btn-current-location">📍 Konumumu Göster</button>
     <button id="btn-emergency-location">🚨 Acil Durum Konumu Ekle</button>
     <label for="basemap-select">Altlık Değiştir:</label>
@@ -277,8 +305,8 @@
   </div>
 
   <script>
-    // Sadece 3'er örnek konum verildi (ilk 3 konumlar)
-     const locations = [
+   
+    const locations = [
       //Gölcük
  
   
@@ -1726,8 +1754,6 @@
       {name: "Karamürsel Terminali", lat: 40.691259182320366, lng: 29.61741046982938}
     ];
 
-
-
     let map;
     let currentPositionMarker = null;
     let emergencyPositionMarker = null;
@@ -1740,7 +1766,6 @@
     const defaultCenter = [40.7655, 29.9406];
     let activePosition = null;
 
-    // İkonlar
     const bakeryIcon = L.icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
       iconSize: [25, 41],
@@ -1771,7 +1796,6 @@
       iconAnchor: [12, 41]
     });
 
-    // Küme ikonları için fonksiyonlar
     function createClusterIcon(cluster, className, color) {
       return L.divIcon({
         html: `<div style="background-color:${color};border-radius:50%;width:40px;height:40px;line-height:40px;color:white;font-weight:bold;border:2px solid ${color};text-align:center;">${cluster.getChildCount()}</div>`,
@@ -1800,7 +1824,6 @@
 
       currentBaseLayer = baseLayers.osm.addTo(map);
 
-      // Marker Cluster grupları (kategoriye göre)
       const bakeryCluster = L.markerClusterGroup({
         iconCreateFunction: cluster => createClusterIcon(cluster, 'marker-cluster-bakery', 'green')
       });
@@ -1820,7 +1843,6 @@
         iconCreateFunction: cluster => createClusterIcon(cluster, 'marker-cluster-bakery', 'red')
       });
 
-      // Toplanma alanları (locations)
       locations.forEach(loc => {
         const marker = L.marker([loc.lat, loc.lng], {icon: locationIcon});
         marker.bindPopup(`
@@ -1833,7 +1855,6 @@
         locationCluster.addLayer(marker);
       });
 
-      // Hastaneler
       hospitals.forEach(hosp => {
         const hospMarker = L.marker([hosp.lat, hosp.lng], {
           icon: L.icon({
@@ -1852,7 +1873,6 @@
         hospitalCluster.addLayer(hospMarker);
       });
 
-      // Fırınlar
       bakeries.forEach(bakery => {
         const bakeryMarker = L.marker([bakery.lat, bakery.lng], {icon: bakeryIcon});
         bakeryMarker.bindPopup(`
@@ -1865,7 +1885,6 @@
         bakeryCluster.addLayer(bakeryMarker);
       });
 
-      // Bankalar
       banks.forEach(bank => {
         const bankMarker = L.marker([bank.lat, bank.lng], {icon: bankIcon});
         bankMarker.bindPopup(`
@@ -1878,7 +1897,6 @@
         bankCluster.addLayer(bankMarker);
       });
 
-      // Benzin istasyonları
       stations.forEach(station => {
         const stationMarker = L.marker([station.lat, station.lng], {icon: fuelStationIcon});
         stationMarker.bindPopup(`
@@ -1891,7 +1909,6 @@
         fuelCluster.addLayer(stationMarker);
       });
 
-      // Terminal konumları
       terminals.forEach(terminal => {
         const terminalMarker = L.marker([terminal.lat, terminal.lng], {icon: terminalIcon});
         terminalMarker.bindPopup(`
@@ -1904,7 +1921,6 @@
         terminalCluster.addLayer(terminalMarker);
       });
 
-      // Haritaya tüm clusterları ekle
       bakeryCluster.addTo(map);
       bankCluster.addTo(map);
       fuelCluster.addTo(map);
@@ -2059,8 +2075,8 @@
     }
 
     function haversineDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3; // Dünya'nın yarıçapı (metre cinsinden)
-      const φ1 = lat1 * Math.PI/180; // φ, λ radyan cinsinden
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI/180;
       const φ2 = lat2 * Math.PI/180;
       const Δφ = (lat2-lat1) * Math.PI/180;
       const Δλ = (lon2-lon1) * Math.PI/180;
@@ -2070,7 +2086,7 @@
                 Math.sin(Δλ/2) * Math.sin(Δλ/2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-      return R * c; // metre cinsinden mesafe
+      return R * c;
     }
 
     function updateRouteDistance(distanceMeters) {
@@ -2142,14 +2158,14 @@
         });
       } else {
         alert('Tarayıcınız konum servislerini desteklemiyor.');
-      }
+              }
     }
 
     function showDirections(instructions) {
       const panel = document.getElementById('directions-panel');
       const list = document.getElementById('directions-list');
       list.innerHTML = '';
-    instructions.forEach(instr => {
+      instructions.forEach(instr => {
         const li = document.createElement('li');
         li.textContent = instr.text;
         list.appendChild(li);
@@ -2227,6 +2243,24 @@
         reopenBtn.style.display = 'none';
         toggleBtn.style.display = 'flex';
       });
+
+      // Yeni eklenen sol alt buton için panel aç/kapa
+      const toggleControlPanelBtn = document.getElementById('toggle-control-panel');
+      const controlPanel = document.getElementById('control-panel');
+
+      toggleControlPanelBtn.addEventListener('click', () => {
+        if(controlPanel.style.display === 'none' || controlPanel.style.display === '') {
+          controlPanel.style.display = 'flex';
+          toggleControlPanelBtn.textContent = '˅'; // Aşağı ok
+        } else {
+          controlPanel.style.display = 'none';
+          toggleControlPanelBtn.textContent = '˄'; // Yukarı ok
+        }
+      });
+
+      // Başlangıçta panel açık olsun
+      controlPanel.style.display = 'flex';
+      toggleControlPanelBtn.textContent = '˅';
 
       window.calculateRoute = calculateRoute;
       window.openGoogleMaps = openGoogleMaps;
