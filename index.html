@@ -2020,7 +2020,7 @@
         distance: haversineDistance(currentPos[0], currentPos[1], hosp.lat, hosp.lng)
       })).sort((a,b) => a.distance - b.distance).slice(0,5);
 
-      let html = '<h2>Yakındaki Hastaneler</h2><ul>';
+      let html = '<h2>En Yakın 5 Hastane</h2><ul>';
       distances.forEach(hosp => {
         html += `<li><strong style="color:red;">${hosp.name}</strong><br />Mesafe: ${(hosp.distance / 1000).toFixed(2)} km <button class="route-btn" onclick="calculateRoute(${hosp.lat},${hosp.lng})">Rota</button> <button class="google-maps-btn" onclick="openGoogleMaps(${hosp.lat},${hosp.lng})">Google Haritalar</button></li>`;
       });
@@ -2035,7 +2035,7 @@
         distance: haversineDistance(currentPos[0], currentPos[1], bakery.lat, bakery.lng)
       })).sort((a,b) => a.distance - b.distance).slice(0,5);
 
-      let html = '<h2>Yakındaki Fırınlar</h2><ul>';
+      let html = '<h2>En Yakın 5 Fırın</h2><ul>';
       distances.forEach(bakery => {
         html += `<li><strong style="color:green;">${bakery.name}</strong><br />Mesafe: ${(bakery.distance / 1000).toFixed(2)} km <button class="route-btn" onclick="calculateRoute(${bakery.lat},${bakery.lng})">Rota</button> <button class="google-maps-btn" onclick="openGoogleMaps(${bakery.lat},${bakery.lng})">Google Haritalar</button></li>`;
       });
@@ -2050,7 +2050,7 @@
         distance: haversineDistance(currentPos[0], currentPos[1], bank.lat, bank.lng)
       })).sort((a,b) => a.distance - b.distance).slice(0,5);
 
-      let html = '<h2>En Yakın Bankalar</h2><ul>';
+      let html = '<h2>En Yakın 5 Banka</h2><ul>';
       distances.forEach(bank => {
         html += `<li><strong style="color:#b8860b;">${bank.name}</strong><br />Mesafe: ${(bank.distance / 1000).toFixed(2)} km <button class="route-btn" onclick="calculateRoute(${bank.lat},${bank.lng})">Rota</button> <button class="google-maps-btn" onclick="openGoogleMaps(${bank.lat},${bank.lng})">Google Haritalar</button></li>`;
       });
