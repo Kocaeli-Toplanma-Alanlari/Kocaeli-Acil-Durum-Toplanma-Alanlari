@@ -1,20 +1,9 @@
-
-<!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Kocaeli Toplanma Alanları 7.10.15</title>
-  
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Kocaeli Acil Toplanma Alanları - Bankalar Dahil</title>
+  <title>Kocaeli Acil Toplanma Alanları</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -172,7 +161,6 @@
     .leaflet-routing-container {
       display: none !important;
     }
-
     /* Küme ikonları için özel stiller */
     .marker-cluster-bakery {
       background-color: rgba(0, 128, 0, 0.6);
@@ -229,7 +217,6 @@
       width: 40px;
       height: 40px;
     }
-
     /* Yeni eklenen buton için */
     #toggle-control-panel {
       position: fixed;
@@ -268,7 +255,10 @@
           <p>Afet Bilgi Sayfası: <a href="https://kocaeli-toplanma-alanlari.github.io/Afet-Bilgi-Sayfas-/" target="_blank">afet.bilgi.sayfasi.html</a> | </p>
         </div>
         <h2>KOCAELİ ACİL DURUM TOPLANMA ALANLARI HARİTASI</h2>
-        <div id="route-distance">Rotanın Uzunluğu: -</div>
+        <div id="route-distance" style="display:flex; align-items:center;">
+          Rotanın Uzunluğu: - 
+          <button id="btn-clear-route" style="margin-left:10px; display:none; cursor:pointer; font-size:12px; padding:2px 6px;">Rotayı Temizle</button>
+        </div>
         <div id="nearest-list">
           <p>Konumunuzu gösterin ya da acil durum konumu ekleyin, en yakın 5 alan burada listelenecek.</p>
         </div>
@@ -306,8 +296,7 @@
   </div>
 
   <script>
-   
-    const locations = [
+   const locations = [
       //Gölcük
  
   
@@ -1755,6 +1744,7 @@
       {name: "Karamürsel Terminali", lat: 40.691259182320366, lng: 29.61741046982938}
     ];
 
+
     let map;
     let currentPositionMarker = null;
     let emergencyPositionMarker = null;
@@ -1972,6 +1962,7 @@
       if(routingControl) {
         map.removeControl(routingControl);
         routingControl = null;
+        document.getElementById('btn-clear-route').style.display = 'none';
       }
 
       updateRouteDistance(null);
@@ -2093,17 +2084,25 @@
     function updateRouteDistance(distanceMeters) {
       const el = document.getElementById('route-distance');
       if(distanceMeters == null) {
-        el.textContent = 'Rotanın Uzunluğu: -';
+        el.firstChild.textContent = 'Rotanın Uzunluğu: -';
       } else {
-        el.textContent = `Rotanın Uzunluğu: ${(distanceMeters/1000).toFixed(2)} km`;
+        el.firstChild.textContent = `Rotanın Uzunluğu: ${(distanceMeters/1000).toFixed(2)} km`;
+      }
+    }
+
+    // Rotayı temizleme fonksiyonu
+    function clearRoute() {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+        updateRouteDistance(null);
+        document.getElementById('directions-panel').style.display = 'none';
+        document.getElementById('btn-clear-route').style.display = 'none';
       }
     }
 
     function clearMap() {
-      if(routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
-      }
+      clearRoute();
       if(currentPositionMarker) {
         map.removeLayer(currentPositionMarker);
         currentPositionMarker = null;
@@ -2119,11 +2118,9 @@
       document.getElementById('nearest-banks').innerHTML = '';
       document.getElementById('nearest-fuelstations').innerHTML = '';
       document.getElementById('nearest-terminals').innerHTML = '';
-      updateRouteDistance(null);
       map.setView(defaultCenter, 11);
       selectingEmergencyLocation = false;
       document.body.classList.remove('selecting-location');
-      document.getElementById('directions-panel').style.display = 'none';
     }
 
     function changeBaseLayer(e) {
@@ -2152,120 +2149,130 @@
 
           currentPositionMarker = L.marker(pos, {
             icon: locationIcon
-          }).addTo(map).bindPopup('Şu anki konumunuz').openPopup();
+          }).add
+          currentPositionMarker = L.marker(pos, {
+  icon: locationIcon
+}).addTo(map).bindPopup('Şu anki konumunuz').openPopup();
 
-        }, error => {
-          alert('Konum alınırken hata oluştu veya izin verilmedi.');
-        });
-      } else {
-        alert('Tarayıcınız konum servislerini desteklemiyor.');
-              }
+}, error => {
+  alert('Konum alınırken hata oluştu veya izin verilmedi.');
+});
+} else {
+  alert('Tarayıcınız konum servislerini desteklemiyor.');
+}
+}
+
+function showDirections(instructions) {
+  const panel = document.getElementById('directions-panel');
+  const list = document.getElementById('directions-list');
+  list.innerHTML = '';
+  instructions.forEach(instr => {
+    const li = document.createElement('li');
+    li.textContent = instr.text;
+    list.appendChild(li);
+  });
+
+  panel.style.display = 'block';
+}
+
+function calculateRoute(lat, lng) {
+  if(!activePosition) {
+    alert('Lütfen önce konumunuzu belirleyin (anlık konum veya acil durum konumu).');
+    return;
+  }
+  if(routingControl) {
+    map.removeControl(routingControl);
+    routingControl = null;
+  }
+
+  routingControl = L.Routing.control({
+    waypoints: [
+      activePosition,
+      L.latLng(lat, lng)
+    ],
+    routeWhileDragging: true,
+    createMarker: () => null,
+    showAlternatives: false,
+    addWaypoints: false,
+    lineOptions: {
+      styles: [{color: 'blue', opacity: 0.7, weight: 5}]
+    },
+    show: false
+  }).addTo(map);
+
+  routingControl.on('routesfound', function(e) {
+    const routes = e.routes;
+    if(routes.length > 0) {
+      const distanceMeters = routes[0].summary.totalDistance;
+      updateRouteDistance(distanceMeters);
+
+      const instructions = [];
+      routes[0].instructions.forEach(instr => {
+        instructions.push(instr);
+      });
+      showDirections(instructions);
+
+      // Rotayı temizle butonunu göster
+      document.getElementById('btn-clear-route').style.display = 'inline-block';
     }
+  });
+}
 
-    function showDirections(instructions) {
-      const panel = document.getElementById('directions-panel');
-      const list = document.getElementById('directions-list');
-      list.innerHTML = '';
-      instructions.forEach(instr => {
-        const li = document.createElement('li');
-        li.textContent = instr.text;
-        list.appendChild(li);
-      });
+function openGoogleMaps(lat, lng) {
+  const url = `https://www.google.com/maps?q=${lat},${lng}`;
+  window.open(url, '_blank');
+}
 
-      panel.style.display = 'block';
-    }
+window.onload = () => {
+  initMap();
 
-    function calculateRoute(lat, lng) {
-      if(!activePosition) {
-        alert('Lütfen önce konumunuzu belirleyin (anlık konum veya acil durum konumu).');
-        return;
-      }
-      if(routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
-      }
+  document.getElementById('btn-current-location').onclick = showCurrentLocation;
+  document.getElementById('btn-emergency-location').onclick = startSelectingEmergencyLocation;
+  document.getElementById('btn-clear').onclick = clearMap;
+  document.getElementById('basemap-select').onchange = changeBaseLayer;
 
-      routingControl = L.Routing.control({
-        waypoints: [
-          activePosition,
-          L.latLng(lat, lng)
-        ],
-        routeWhileDragging: true,
-        createMarker: () => null,
-        showAlternatives: false,
-        addWaypoints: false,
-        lineOptions: {
-          styles: [{color: 'blue', opacity: 0.7, weight: 5}]
-        },
-        show: false
-      }).addTo(map);
+  // "Rotayı Temizle" butonuna tıklama olayı
+  document.getElementById('btn-clear-route').onclick = clearRoute;
 
-      routingControl.on('routesfound', function(e) {
-        const routes = e.routes;
-        if(routes.length > 0) {
-          const distanceMeters = routes[0].summary.totalDistance;
-          updateRouteDistance(distanceMeters);
+  // Hamburger panel aç/kapa
+  const toggleBtn = document.getElementById('toggle-nearest');
+  const reopenBtn = document.getElementById('toggle-reopen');
+  const nearestPanel = document.getElementById('nearest-panel');
 
-          const instructions = [];
-          routes[0].instructions.forEach(instr => {
-            instructions.push(instr);
-          });
-          showDirections(instructions);
-        }
-      });
-    }
+  toggleBtn.addEventListener('click', () => {
+    nearestPanel.classList.add('closed');
+    toggleBtn.style.display = 'none';
+    reopenBtn.style.display = 'flex';
+  });
 
-    function openGoogleMaps(lat, lng) {
-      const url = `https://www.google.com/maps?q=${lat},${lng}`;
-      window.open(url, '_blank');
-    }
+  reopenBtn.addEventListener('click', () => {
+    nearestPanel.classList.remove('closed');
+    reopenBtn.style.display = 'none';
+    toggleBtn.style.display = 'flex';
+  });
 
-    window.onload = () => {
-      initMap();
+  // Yeni eklenen sol alt buton için panel aç/kapa
+  const toggleControlPanelBtn = document.getElementById('toggle-control-panel');
+  const controlPanel = document.getElementById('control-panel');
 
-      document.getElementById('btn-current-location').onclick = showCurrentLocation;
-      document.getElementById('btn-emergency-location').onclick = startSelectingEmergencyLocation;
-      document.getElementById('btn-clear').onclick = clearMap;
-      document.getElementById('basemap-select').onchange = changeBaseLayer;
-
-      // Hamburger panel aç/kapa
-      const toggleBtn = document.getElementById('toggle-nearest');
-      const reopenBtn = document.getElementById('toggle-reopen');
-      const nearestPanel = document.getElementById('nearest-panel');
-
-      toggleBtn.addEventListener('click', () => {
-        nearestPanel.classList.add('closed');
-        toggleBtn.style.display = 'none';
-        reopenBtn.style.display = 'flex';
-      });
-
-      reopenBtn.addEventListener('click', () => {
-        nearestPanel.classList.remove('closed');
-        reopenBtn.style.display = 'none';
-        toggleBtn.style.display = 'flex';
-      });
-
-      // Yeni eklenen sol alt buton için panel aç/kapa
-      const toggleControlPanelBtn = document.getElementById('toggle-control-panel');
-      const controlPanel = document.getElementById('control-panel');
-
-      toggleControlPanelBtn.addEventListener('click', () => {
-        if(controlPanel.style.display === 'none' || controlPanel.style.display === '') {
-          controlPanel.style.display = 'flex';
-          toggleControlPanelBtn.textContent = '˅'; // Aşağı ok
-        } else {
-          controlPanel.style.display = 'none';
-          toggleControlPanelBtn.textContent = '˄'; // Yukarı ok
-        }
-      });
-
-      // Başlangıçta panel açık olsun
+  toggleControlPanelBtn.addEventListener('click', () => {
+    if(controlPanel.style.display === 'none' || controlPanel.style.display === '') {
       controlPanel.style.display = 'flex';
-      toggleControlPanelBtn.textContent = '˅';
+      toggleControlPanelBtn.textContent = '˅'; // Aşağı ok
+    } else {
+      controlPanel.style.display = 'none';
+      toggleControlPanelBtn.textContent = '˄'; // Yukarı ok
+    }
+  });
 
-      window.calculateRoute = calculateRoute;
-      window.openGoogleMaps = openGoogleMaps;
-    };
+  // Başlangıçta panel açık olsun
+  controlPanel.style.display = 'flex';
+  toggleControlPanelBtn.textContent = '˅';
+
+  window.calculateRoute = calculateRoute;
+  window.openGoogleMaps = openGoogleMaps;
+
+     };
   </script>
 </body>
 </html>
